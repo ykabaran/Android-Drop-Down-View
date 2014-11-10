@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <dimen name="color_rect_size">40dp</dimen>
+    <dimen name="color_rect_corner_radius">8dp</dimen>
+
+</resources>
