@@ -1,16 +1,15 @@
 package com.yildizkabaran.dropdownview.fragment;
 
-import android.app.Fragment;
 import android.os.Bundle;
-import android.view.LayoutInflater;
+import android.support.annotation.Nullable;
+import android.support.v4.app.Fragment;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.AdapterView;
 
-import com.yildizkabaran.dropdownview.ColorChoice;
-import com.yildizkabaran.dropdownview.ColorChoiceAdapter;
-import com.yildizkabaran.dropdownview.view.DropDownView;
+import com.yildizkabaran.dropdownview.entity.ColorChoice;
+import com.yildizkabaran.dropdownview.adapter.ColorChoiceAdapter;
 import com.yildizkabaran.dropdownview.R;
+import com.yildizkabaran.dropdownview.view.DropDownView;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,9 +17,9 @@ import java.util.List;
 /**
  * Created by yildizkabaran on 10.11.2014.
  */
-public class DemoFragment extends Fragment {
+public class BaseDemoFragment extends Fragment implements AdapterView.OnItemSelectedListener {
 
-  private static final String TAG = DemoFragment.class.getSimpleName();
+  private static final String TAG = BaseDemoFragment.class.getSimpleName();
   private static final List<ColorChoice> COLOR_CHOICES = new ArrayList<ColorChoice>();
   static {
     COLOR_CHOICES.add(new ColorChoice(R.color.black, R.drawable.black_rect, R.string.choose_color));
@@ -33,28 +32,35 @@ public class DemoFragment extends Fragment {
     COLOR_CHOICES.add(new ColorChoice(R.color.blue, R.drawable.blue_rect, R.string.blue));
   }
 
+  private View rootView;
   private DropDownView dropDown;
 
   @Override
-  public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                           Bundle savedInstanceState) {
-    final View rootView = inflater.inflate(R.layout.fragment_main, container, false);
+  public void onDestroyView() {
+    dropDown = null;
+    rootView = null;
 
-    dropDown = (DropDownView) rootView.findViewById(R.id.drop_down_view);
-    dropDown.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-      @Override
-      public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-        rootView.setBackgroundResource(COLOR_CHOICES.get(position).colorId);
-      }
+    super.onDestroyView();
+  }
 
-      @Override
-      public void onNothingSelected(AdapterView<?> parent) {
+  @Override
+  public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
+    super.onViewCreated(view, savedInstanceState);
 
-      }
-    });
+    rootView = view;
+    dropDown = (DropDownView) view.findViewById(R.id.drop_down_view);
+    dropDown.setOnItemSelectedListener(this);
     dropDown.setAdapter(new ColorChoiceAdapter(getActivity(), COLOR_CHOICES));
+  }
 
-    return rootView;
+  @Override
+  public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+    rootView.setBackgroundResource(COLOR_CHOICES.get(position).colorId);
+  }
+
+  @Override
+  public void onNothingSelected(AdapterView<?> parent) {
+
   }
 
 }

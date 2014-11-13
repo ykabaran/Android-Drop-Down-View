@@ -9,13 +9,11 @@ import android.content.Context;
 import android.os.Build;
 import android.util.AttributeSet;
 import android.view.View;
-import android.view.animation.AnticipateInterpolator;
 import android.view.animation.BounceInterpolator;
-import android.view.animation.DecelerateInterpolator;
 import android.view.animation.LinearInterpolator;
 import android.view.animation.OvershootInterpolator;
 
-import com.yildizkabaran.dropdownview.SpringInterpolator;
+import com.yildizkabaran.dropdownview.interpolator.SpringInterpolator;
 
 /**
  * Created by yildizkabaran on 10.11.2014.

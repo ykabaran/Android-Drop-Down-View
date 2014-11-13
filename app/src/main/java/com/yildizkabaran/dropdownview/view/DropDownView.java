@@ -4,13 +4,11 @@ import android.annotation.TargetApi;
 import android.content.Context;
 import android.os.Build;
 import android.util.AttributeSet;
-import android.util.SparseArray;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.SpinnerAdapter;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 
 /**
  * Created by yildizkabaran on 10.11.2014.
@@ -38,8 +36,8 @@ public abstract class DropDownView extends AdapterView<SpinnerAdapter> implement
   }
 
   private static final int STATE_COLLAPSED = 0;
-  private static final int STATE_EXPANDED = 2;
   private static final int STATE_EXPANDING = 1;
+  private static final int STATE_EXPANDED = 2;
   private static final int STATE_COLLAPSING = 3;
   private int state = STATE_COLLAPSED;
 

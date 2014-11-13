@@ -1,4 +1,4 @@
-package com.yildizkabaran.dropdownview;
+package com.yildizkabaran.dropdownview.interpolator;
 
 import android.animation.TimeInterpolator;
 

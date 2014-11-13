@@ -1,9 +1,8 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-                xmlns:tools="http://schemas.android.com/tools"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:background="#E7E7E7"
-                tools:context=".fragment.DemoFragment">
+             xmlns:tools="http://schemas.android.com/tools"
+             android:layout_width="match_parent"
+             android:layout_height="match_parent"
+             tools:context=".fragment.DemoFragment">
 
     <com.yildizkabaran.dropdownview.view.DropDownSpring
         android:id="@+id/drop_down_view"

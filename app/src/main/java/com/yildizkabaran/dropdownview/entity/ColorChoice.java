@@ -1,4 +1,4 @@
-package com.yildizkabaran.dropdownview;
+package com.yildizkabaran.dropdownview.entity;
 
 /**
  * Created by yildizkabaran on 10.11.2014.
