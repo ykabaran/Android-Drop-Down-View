@@ -40,7 +40,7 @@ public class DropDownSpring extends DropDownView {
   }
 
   private static final int EXPAND_ANIM_DUR = 1500;
-  private TimeInterpolator expandInterpolator = new SpringInterpolator(20F, 4);
+  private TimeInterpolator expandInterpolator = new SpringInterpolator(12F, 5);
   private static final int COLLAPSE_ANIM_DUR = 1000;
   private TimeInterpolator collapseInterpolator = new OvershootInterpolator();
   private TimeInterpolator selectedInterpolator = new BounceInterpolator();
