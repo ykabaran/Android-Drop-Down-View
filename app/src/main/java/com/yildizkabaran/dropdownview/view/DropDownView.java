@@ -1,18 +1,16 @@
 package com.yildizkabaran.dropdownview.view;
 
-import android.animation.Animator;
-import android.animation.AnimatorListenerAdapter;
-import android.animation.TimeInterpolator;
-import android.animation.ValueAnimator;
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.os.Build;
 import android.util.AttributeSet;
 import android.util.SparseArray;
 import android.view.View;
-import android.view.animation.LinearInterpolator;
 import android.widget.AdapterView;
 import android.widget.SpinnerAdapter;
+
+import java.util.ArrayList;
+import java.util.Arrays;
 
 /**
  * Created by yildizkabaran on 10.11.2014.
@@ -24,29 +22,21 @@ public abstract class DropDownView extends AdapterView<SpinnerAdapter> implement
 
   public DropDownView(Context context) {
     super(context);
-    initialize();
   }
 
   public DropDownView(Context context, AttributeSet attrs) {
     super(context, attrs);
-    initialize();
   }
 
   public DropDownView(Context context, AttributeSet attrs, int defStyleAttr) {
     super(context, attrs, defStyleAttr);
-    initialize();
   }
 
   @TargetApi(Build.VERSION_CODES.LOLLIPOP)
   public DropDownView(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
     super(context, attrs, defStyleAttr, defStyleRes);
-    initialize();
   }
 
-  private ValueAnimator expander, collapser;
-  private TimeInterpolator linearInterpolator = new LinearInterpolator();
-
-  private static final int EXPAND_DURATION = 5000;
   private static final int STATE_COLLAPSED = 0;
   private static final int STATE_EXPANDED = 2;
   private static final int STATE_EXPANDING = 1;
@@ -55,68 +45,9 @@ public abstract class DropDownView extends AdapterView<SpinnerAdapter> implement
 
   private SpinnerAdapter adapter;
 
-  private View collapsedView, pendingSelectionView;
-  private SparseArray<View> dropDownViews = new SparseArray<View>();
-  private int selectedIndex = -1, pendingSelection = -1;
-
-  private void initialize(){
-    collapser = ValueAnimator.ofFloat(1F, 0F);
-    collapser.setInterpolator(linearInterpolator);
-    collapser.setDuration(EXPAND_DURATION);
-    collapser.addListener(new AnimatorListenerAdapter() {
-      @Override
-      public void onAnimationStart(Animator animation) {
-        state = STATE_COLLAPSING;
-        int childCount = adapter.getCount();
-        for (int i = 0; i < childCount; ++i) {
-          final View v = dropDownViews.get(i);
-          if (v != null) {
-            bringChildToFront(v);
-          }
-        }
-        if(pendingSelectionView != null) {
-          bringChildToFront(pendingSelectionView);
-        } else {
-          bringChildToFront(collapsedView);
-        }
-      }
-
-      @Override
-      public void onAnimationEnd(Animator animation) {
-        setSelection(pendingSelection);
-        state = STATE_COLLAPSED;
-      }
-    });
-    collapser.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
-      @Override
-      public void onAnimationUpdate(ValueAnimator animation) {
-        float currVal = (Float) animation.getAnimatedValue();
-        displayDropDown(currVal);
-      }
-    });
-
-    expander = ValueAnimator.ofFloat(0F, 1F);
-    expander.setInterpolator(linearInterpolator);
-    expander.setDuration(EXPAND_DURATION);
-    expander.addListener(new AnimatorListenerAdapter() {
-      @Override
-      public void onAnimationStart(Animator animation) {
-        state = STATE_EXPANDING;
-      }
-
-      @Override
-      public void onAnimationEnd(Animator animation) {
-        state = STATE_EXPANDED;
-      }
-    });
-    expander.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
-      @Override
-      public void onAnimationUpdate(ValueAnimator animation) {
-        float currVal = (Float) animation.getAnimatedValue();
-        displayDropDown(currVal);
-      }
-    });
-  }
+  private final ArrayList<View> views = new ArrayList<View>();
+  private int selectedIndex = -1;
+  private int width;
 
   @Override
   public SpinnerAdapter getAdapter() {
@@ -131,26 +62,15 @@ public abstract class DropDownView extends AdapterView<SpinnerAdapter> implement
 
   @Override
   public View getSelectedView() {
-    return collapsedView;
-  }
-
-  private void animateSelection(int index){
-    pendingSelectionView = dropDownViews.get(index);
-    dropDownViews.remove(index);
-    dropDownViews.put(selectedIndex, collapsedView);
-    pendingSelection = index;
-
-    collapse();
+    return views.get(selectedIndex);
   }
 
   @Override
   public void setSelection(int position) {
-    if(selectedIndex == position || pendingSelectionView == null){
+    if(selectedIndex == position){
       return;
     }
     selectedIndex = position;
-    collapsedView = pendingSelectionView;
-    pendingSelectionView = null;
     performSelection();
   }
 
@@ -159,40 +79,39 @@ public abstract class DropDownView extends AdapterView<SpinnerAdapter> implement
     if(listener == null){
       return;
     }
-    listener.onItemSelected(this, collapsedView, selectedIndex, collapsedView.getId());
+    View selectedView = getSelectedView();
+    listener.onItemSelected(this, getSelectedView(), selectedIndex, selectedView.getId());
   }
 
   private void initializeViewsWithAdapter() {
     removeAllViewsInLayout();
-    dropDownViews.clear();
+    views.clear();
 
-    if (adapter == null || adapter.getCount() < 1) {
+    final int numItems = (adapter == null) ? 0 : adapter.getCount();
+    if (numItems < 1) {
       selectedIndex = -1;
       return;
     }
 
-    final int numItems = adapter.getCount();
-    for (int i = 1; i < numItems; ++i) {
+    for (int i = 0; i < numItems; ++i) {
       final View itemView = adapter.getView(i, null, this);
       itemView.setOnClickListener(this);
-      dropDownViews.put(i, itemView);
+      views.add(itemView);
+      addViewInLayout(itemView, -1, itemView.getLayoutParams());
     }
-    for (int i = numItems - 1; i > 0; --i) {
-      final View v = dropDownViews.get(i);
-      addViewInLayout(v, -1, v.getLayoutParams());
-    }
-
     selectedIndex = 0;
-    collapsedView = adapter.getView(selectedIndex, null, this);
-    collapsedView.setOnClickListener(this);
-    addViewInLayout(collapsedView, -1, collapsedView.getLayoutParams());
-    post(new Runnable() {
-      @Override
-      public void run() {
-        displayDropDown(0F);
-      }
-    });
+    zOrderChildren();
     performSelection();
+  }
+
+  private void zOrderChildren(){
+    final int numItems = adapter.getCount();
+    for (int i = numItems - 1; i >= 0; --i) {
+      if(i != selectedIndex) {
+        views.get(i).bringToFront();
+      }
+    }
+    getSelectedView().bringToFront();
   }
 
   @Override
@@ -201,20 +120,19 @@ public abstract class DropDownView extends AdapterView<SpinnerAdapter> implement
       return;
     }
 
-    if (v == collapsedView) {
-      if (state == STATE_COLLAPSED) {
+    int adapterIndex = views.indexOf(v);
+    if(adapterIndex == selectedIndex){
+      if(state == STATE_COLLAPSED){
         expand();
-      } else if (state == STATE_EXPANDED) {
+      } else {
         collapse();
       }
-    } else {
-      int arrIndex = dropDownViews.indexOfValue(v);
-      int adapterIndex = dropDownViews.keyAt(arrIndex);
-      animateSelection(adapterIndex);
+      return;
     }
-  }
 
-  private int width;
+    setSelection(adapterIndex);
+    collapse();
+  }
 
   @Override
   protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
@@ -229,55 +147,50 @@ public abstract class DropDownView extends AdapterView<SpinnerAdapter> implement
       return;
     }
 
-    int topEdge = positionChild(collapsedView, 0);
     int childCount = adapter.getCount();
     for (int i=0; i<childCount; ++i) {
-      final View v = dropDownViews.get(i);
-      if(v != null && v != collapsedView) {
-        topEdge = positionChild(v, topEdge + 2);
-      } else if(pendingSelectionView != null && i == pendingSelection){
-        topEdge += pendingSelectionView.getMeasuredHeight() + 2;
-      }
+      final View v = views.get(i);
+      int childWidth = v.getMeasuredWidth();
+      int childLeft = (width - childWidth) / 2;
+      v.layout(childLeft, 0, childLeft + childWidth, v.getMeasuredHeight());
     }
-  }
-
-  private int positionChild(View child, int top) {
-    int childWidth = child.getMeasuredWidth();
-    int childLeft = (width - childWidth) / 2;
-    int newTop = top + child.getMeasuredHeight();
-    child.layout(childLeft, top, childLeft + childWidth, newTop);
-    return newTop;
   }
 
   private void expand() {
-    if (state == STATE_EXPANDING || state == STATE_EXPANDED) {
+    if (state != STATE_COLLAPSED) {
       return;
     }
-    if (collapser != null && collapser.isStarted()) {
-      collapser.cancel();
-    }
 
-    expander.start();
+    state = STATE_EXPANDING;
+    onExpand();
+  }
+
+  protected void onExpanded(){
+    state = STATE_EXPANDED;
+  }
+
+  protected void onCollapsed(){
+    state = STATE_COLLAPSED;
   }
 
   private void collapse() {
-    if (state == STATE_COLLAPSING || state == STATE_COLLAPSED) {
+    if (state != STATE_EXPANDED) {
       return;
     }
-    if (expander != null && expander.isStarted()) {
-      expander.cancel();
-    }
 
-    collapser.start();
+    state = STATE_COLLAPSING;
+    zOrderChildren();
+    onCollapse();
   }
 
-  protected View getDropDownView(int index) {
-    return dropDownViews.get(index);
+  protected int getSelectedIndex(){
+    return selectedIndex;
   }
 
-  protected View getPendingSelectionView(){
-    return pendingSelectionView;
+  protected View getViewAtIndex(int index) {
+    return views.get(index);
   }
 
-  protected abstract void displayDropDown(float amount);
+  protected abstract void onExpand();
+  protected abstract void onCollapse();
 }
